@@ -1,2 +1,2 @@
 test
-![test](MyImage/jixianyundong-002.jpg)
+![test](https://github.com/EricLee0107/MyImage/blob/master/jixianyundong-002.jpg)
