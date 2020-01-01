@@ -75,7 +75,7 @@ disc_only_copies:磁盘，不支持表类型为ordered_set的表
 5. -sname -name的区别
 6. OTP文档heart模块学习
 7. 套接字的主动模式与被动模式
-8. application:start　启动类型3. 如何添加依赖　P205
+8. application:start　启动类型
 9. RPC(远程过程调用)
 10. EDoc的使用
 11. ets表常用函数和使用中的问题
