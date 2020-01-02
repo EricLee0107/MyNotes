@@ -72,7 +72,6 @@ disc_only_copies:磁盘，不支持表类型为ordered_set的表
 2. 网络的多播与广播？
 3. 如何添加依赖　P205
 4. net_adm:ping/1
-5. -sname -name的区别
 6. OTP文档heart模块学习
 7. 套接字的主动模式与被动模式
 8. application:start　启动类型
@@ -80,3 +79,8 @@ disc_only_copies:磁盘，不支持表类型为ordered_set的表
 10. EDoc的使用
 11. ets表常用函数和使用中的问题
 12. ets表Options的使用
+13. gen_server:cal/3返回nodedown是很么原因？还有那些返回情况?
+14. process_flag(trap_exit,true)什么用法？有什么特殊使用场景?
+15. 不同节点之间如何通过pid查找到对方并成功传递消息。
+16. rpc:call和gen_server:call的比较;rpc和gen_server的关系
+17. erlang:spawn_monitor
