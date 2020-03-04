@@ -108,11 +108,29 @@ map:需要为空的映射分配足够的空间以容纳指定数量的元素。�
 | %U   | Unicode 字符                             |
 | %f   | 浮点数                                   |
 
-  
+  ##### sync.WaitGroup的使用场景
+
+当程序需要并发，需要创建多个goroutine，并且一定要等这些并发全部完成后才能继续接下来的程序执行，此时需要用到sysc.WaitGroup。
+
+WaitGroup的特点是Wait()可以用来阻塞直到队列中的所有任务都完成时(WatiGroup计数为0)才解除阻塞，而不需要sleep一个固定的时间来等待，但是其缺点是无法指定固定的goroutine数目。
 
   
 
-  
+  go语言中的引用类型包含哪些？
+​	数组切片、字典(map)、通道（channel）、接口（interface）
+go语言中指针运算有哪些？
+​	可以通过“&”取指针的地址
+可以通过“*”取指针指向的数据
+说说go语言的同步锁？
+​	(1) 当一个goroutine获得了Mutex后，其他goroutine就只能乖乖的等待，除非该goroutine释放这个Mutex
+(2) RWMutex在读锁占用的情况下，会阻止写，但不阻止读
+(3) RWMutex在写锁占用情况下，会阻止任何其他goroutine（无论读和写）进来，整个锁相当于由该goroutine独占
+说说go语言的channel特性？
+​	A. 给一个 nil channel 发送数据，造成永远阻塞
+B. 从一个 nil channel 接收数据，造成永远阻塞
+C. 给一个已经关闭的 channel 发送数据，引起 panic
+D. 从一个已经关闭的 channel 接收数据，如果缓冲区中为空，则返回一个零值
+E. 无缓冲的channel是同步的，而有缓冲的channel是非同步的
 
   
 
