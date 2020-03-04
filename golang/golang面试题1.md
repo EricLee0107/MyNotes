@@ -114,19 +114,55 @@ map:需要为空的映射分配足够的空间以容纳指定数量的元素。�
 
 WaitGroup的特点是Wait()可以用来阻塞直到队列中的所有任务都完成时(WatiGroup计数为0)才解除阻塞，而不需要sleep一个固定的时间来等待，但是其缺点是无法指定固定的goroutine数目。
 
-  
+##### 说说go语言的同步锁
+
+- Mutex互斥锁，当一个goroutine获得了Mutex之后，其他goroutine只能等待Mutex的持有者释放这个锁之后才可以得到这个锁。
+- RWmutex在读锁占用的情况下会阻止写，但不会阻止读；在写锁占用情况下，会阻止任何其他goroutine(读或者写)，整个锁相当于该goroutine独占。主要适用一些大多数情况下是读取变量的状态，所以多个桉树可以安全的并发执行读操作。
+
+#### Go基础
+
+##### for语句
+
+for循环支持continue和break来控制循环，而且可以通过声明标签然后通过break跳转到最外层循环。
+
+for循环中的大括号是必须的，但分好只在可选的前置后者后置声明语句都存在的时候才需要。
+
+for循环不支持以逗号为分隔的多个赋值语句，多变量初始化可以通过平行赋值（a,b = x,y）的方式。
+
+for循环实现有序映射的迭代：
+
+方案1：创建一个有键组成的切片，然后对切片排序，然后有序获取每个键的值。
+
+方案2：优先使用一个有序数据结构，如：有序映射。
+
+##### switch语句
+
+单个case中可以出现多个结果选项，多个选项之间以逗号分隔。
+
+```go
+switch x.(Type){
+    case int,int8,int16:
+    	fmt.Printf("X is int")
+    default：
+    	fmt.Printf("x is other type")
+}
+```
+
+只有在case中明确添加fallthrough关键字，才会继续执行紧跟的下一个case;
+
+`x.(type)`获取变量x的类型，可以用于switch语句的条件开关。
+
+
 
   go语言中的引用类型包含哪些？
 ​	数组切片、字典(map)、通道（channel）、接口（interface）
 go语言中指针运算有哪些？
 ​	可以通过“&”取指针的地址
 可以通过“*”取指针指向的数据
-说说go语言的同步锁？
-​	(1) 当一个goroutine获得了Mutex后，其他goroutine就只能乖乖的等待，除非该goroutine释放这个Mutex
-(2) RWMutex在读锁占用的情况下，会阻止写，但不阻止读
-(3) RWMutex在写锁占用情况下，会阻止任何其他goroutine（无论读和写）进来，整个锁相当于由该goroutine独占
+
 说说go语言的channel特性？
-​	A. 给一个 nil channel 发送数据，造成永远阻塞
+
+A. 给一个 nil channel 发送数据，造成永远阻塞
 B. 从一个 nil channel 接收数据，造成永远阻塞
 C. 给一个已经关闭的 channel 发送数据，引起 panic
 D. 从一个已经关闭的 channel 接收数据，如果缓冲区中为空，则返回一个零值
