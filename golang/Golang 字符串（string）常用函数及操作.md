@@ -1,8 +1,32 @@
-## Golang 字符串（string）常用函数及操作
+## Golang 字符串（string）系列函数功能与用法详解
 
+### 常用函数
 
+**ContainsAny(str, chars) bool**
 
+如果str中包含chars中的任意一个字符，返回true，否则返回false
 
+例子：
+
+```go
+	str := "hello world"
+	fmt.Println(strings.ContainsAny(str,"bcfa"),strings.ContainsAny(str,"dcfa"))
+```
+
+输出：false true
+
+ **ContainsRune(str,rune) bool**
+
+str中是否包含单个unicode字符
+
+例子：
+
+```go
+str := "hello world"
+fmt.Println(strings.ContainsRune(str,'w'),strings.ContainsRune(str,'s'))
+```
+
+输出：true false
 
 **Count(str,substr) int**
 
@@ -17,43 +41,58 @@ fmt.Println(strings.Count(str, "l"), strings.Count(str, "t"))
 
 输出：3 0
 
-**ContainsAny(str, chars) bool**
+**EqualFold(str,str2)**
 
-包含任何Unicode字符
-
-例子：
-
- **ContainsRune(str,rune) bool**
-
-包含unicode单个字符
+判断两个utf-8编码字符串（将unicode大写、小写、标题三种格式字符视为相同）是否相同。
 
 例子：
 
-**Count(str,substr) int**
+```go
+fmt.Println(strings.EqualFold("Go", "go"))
+```
 
-统计子串出现的次数
-
-例子：
-
-**EqualFold(str,t)**
-
-对是否所有的unicode字符都相等
-
-例子：
+输出：true
 
 **Fields(str) []string**
 
-根据空格分割所有
+返回将字符串按照空白（unicode.IsSpace确定，可以是一到多个连续的空白字符）分割的多个字符串。如果字符串全部是空白或者是空字符串的话，会返回空切片。
 
 例子：
+
+```go
+str := "hello         world     hello    boy"
+fmt.Println(strings.Fields(str))
+```
+
+输出：[hello world hello boy]
 
 **FieldsFunc(str func(r rune)bool{})**
 
-根据指定规则拆分字符串
+类似Fields，但使用函数f来确定分割符（满足f的unicode码值）。如果字符串全部是分隔符或者是空字符串的话，会返回空切片
 
 例子：
 
+isabc函数
 
+```go
+func isabc(r rune) bool{
+   switch r{
+   case 'a','b','c':
+      return true
+   default:
+      return false
+   }
+}
+```
+
+FieldsFunc函数
+
+```go
+str := "hahbhch"
+fmt.Println(strings.FieldsFunc(str,isabc))
+```
+
+输出：[h h h h]
 
 **HasPrefix(str,prex)**
 
@@ -103,15 +142,29 @@ fmt.Println(strings.Index(str, "l"), ",", strings.Index(str, "t"))
 
 **IndexAny(str,chars) int**
 
-返回任何unicode字符(\r\n)第一次出现的位置
+返回chars中存在的unicode字符第一次出现的位置（下标从0开始）
 
 例子：
+
+```go
+str := "hello world"
+fmt.Println(strings.IndexAny(str,"cw"))
+```
+
+输出：6
 
 **IndexByte(str,char) int**
 
-第一次字符出现的位置 中文无法使用
+str中第一次char出现的位置，不存在则返回-1。 中文无法使用
 
 例子：
+
+```go
+str := "hello world"
+fmt.Println(strings.IndexByte(str,'e'))
+```
+
+输出：1
 
 **IndexFunc(str,func(rune)bool) int**
 
@@ -119,15 +172,46 @@ fmt.Println(strings.Index(str, "l"), ",", strings.Index(str, "t"))
 
 例子：
 
-**IndexRune(str,rune) int**
+isabc函数
 
-第一次unicode字符出现的位置
+```go
+func isabc(r rune) bool{
+   switch r{
+   case 'a','b','c':
+      return true
+   default:
+      return false
+   }
+}
+```
+
+```go
+str := "hello world"
+fmt.Println(strings.IndexFunc(str,isabc))
+```
+
+因为`a`,`b`,`c`都不在`hello world`中所以返回-1
+
+输出：-1
+
+**IndexRune(str,r) int**
+
+unicode码值在str中第一次出现的位置，不存在则返回-1。
 
 例子：
+
+```go
+str := "hello world"
+fmt.Println(strings.IndexRune(str,'d'))
+```
+
+输出：10
 
 **Join([]string,sep)**
 
 用指定字符串将slice中的所有元素链接成一个字符串
+
+例子：
 
 ```GO
 //用指定字符将 string 类型的 slice 中所有元素链接成一个字符串
@@ -136,8 +220,6 @@ fmt.Println(strings.Join(str4,"-"))	//用-连接str4中的所有元素
 ```
 
 输出：a-b-c-d
-
-例子：
 
 **LastIndex(str,substr) int**
 
@@ -155,9 +237,15 @@ fmt.Println(strings.LastIndex(str, "l"), ",", strings.LastIndex(str, "t"))
 
 **LastIndexAny(str,chars) int**
 
-返回任何unicode字符(\r\n)最后一次出现的位置
+返回chars中存在的一個字符，最后一次出现的位置
 
 例子：
+
+```go
+fmt.Println(strings.LastIndexAny(str, "lr"), ",", strings.LastIndexAny(str, "ot"))
+```
+
+输出：9，7
 
 **LastIndexByte(str,char) int**
 
@@ -165,17 +253,45 @@ fmt.Println(strings.LastIndex(str, "l"), ",", strings.LastIndex(str, "t"))
 
 例子：
 
+```go
+str := "bibox bibox"
+fmt.Println(strings.LastIndexByte(str,'b'))
+```
+
+输出：8
+
 **LastIndexFunc(str,func(rune)bool) int**
 
 自定义最后一次查找规则
 
 例子：
 
+```go
+str := "bibox"
+fmt.Println(strings.LastIndexFunc(str,isabc))
+```
+
+输出：2
+
 **Map(func(rune)rune,str) string**
 
 根据自定义函数对字符串进行修改并返回
 
 例子：
+
+```go
+toUpper := func(r rune) rune {
+	switch {
+     // 对所有小写字母改为大写
+	case r >= 'a' && r <= 'z':
+		return r - 32
+	}
+	return r
+}
+fmt.Println(strings.Map(toUpper, "Twas brillig and the slithy gopher..."))
+```
+
+输出：TWAS BRILLIG AND THE SLITHY GOPHER...
 
 **Repeat(str,n) string**
 
@@ -200,20 +316,14 @@ fmt.Println(strings.Repeat(str, 2))
 //将str中的 hello 替换为 你好
 str := "hello world"
 fmt.Println(strings.Replace(str, "hello", "你好", 1))  
-//最后一个参数表示如果str中有多个hello的话，只替换前n个
+//最后一个参数表示如果str中有多个hello的话，只替换前n个， -1代表全部替換
 ```
 
 输出：你好 world 
 
-**ReplaceAll(str,oldstr,newstr)**
-
-替换全部
-
-例子：
-
 **Split(str,seq) []string**
 
-正常切分
+跟去seq分隔str，返回字符串列表
 
 例子：
 
@@ -224,7 +334,7 @@ res0 :=strings.Split(str,"w")
 fmt.Println(res0)	
 ```
 
-输出：[hello  orld]
+输出：[hello  orld]   
 
 **SplitAfter(str,seq) []string**
 
@@ -232,17 +342,23 @@ fmt.Println(res0)
 
 例子：
 
-**SplitAfterN(str,sep,n) []string**
+```go
+fmt.Printf("[%q]",strings.SplitAfter("hello,world", ","))
+```
 
-切分保留分割符
-
-例子：
+输出：[["hello," "world"]]   这里`,`没有被删除，而是和前一个字符串分隔在一起
 
 **SplitN(str,sep,n) []string**
 
-n是切分成几个string 如果是 1不切分 n 前n-1切分 最后一份不管包含多少个sep 都合成一个字符串 不做切分
+切分为n个字符串， 如果n是1不切分, 前n-1个分隔符会切分字符，最后一份不管包含多少个sep都合成一个字符串 不做切分
 
 例子：
+
+```go
+fmt.Printf("[%q]",strings.SplitN("hello,world,world2,world3", ",",2))
+```
+
+输出：[["hello" "world,world2,world3"]]
 
 **ToLower(str)**
 
@@ -274,49 +390,57 @@ fmt.Println(strings.ToUpper(str1))	//全体转大写
 
 **Trim(str,cutset)**
 
-这里cutset是一个集合字符串 ";:,]"等等
+删除两侧的指定字符，这里cutset是一个集合字符串 ";:,]"等等
 
 例子：
+
+```go
+fmt.Printf("[%q]", strings.Trim(" !,,!! Achtung! Achtung! !!! ", ",! "))
+```
+
+输出：["Achtung! Achtung"]
 
 **TrimFunc(str,func(rune)rune) string**
 
-两侧去指定字符
+根据自定义函数去除两侧特定字符
 
 例子：
+
+```go
+fmt.Printf("[%q]", strings.TrimFunc("\t\rhello\t\r", unicode.IsSpace))
+```
+
+输出：["hello"]   其实就是去除了`\t`和`\r`
+
+unicode.IsSpace的实现：
+
+```go
+// IsSpace reports whether the rune is a space character as defined
+// by Unicode's White Space property; in the Latin-1 space
+// this is
+//	'\t', '\n', '\v', '\f', '\r', ' ', U+0085 (NEL), U+00A0 (NBSP).
+// Other definitions of spacing characters are set by category
+// Z and property Pattern_White_Space.
+func IsSpace(r rune) bool {
+	// This property isn't the same as Z; special-case it.
+	if uint32(r) <= MaxLatin1 {
+		switch r {
+		case '\t', '\n', '\v', '\f', '\r', ' ', 0x85, 0xA0:
+			return true
+		}
+		return false
+	}
+	return isExcludingLatin(White_Space, r)
+}
+```
 
 **TrimLeft(str,cutset)**
 
 去左侧指定字符
 
-```
-str2 := "  hello world tt"
-
-//去掉字符串尾指定的字符
-fmt.Println(strings.TrimRight(str2,"t"))	//  hello world 字符串首时为TrimLeft()
-
-//去掉字符串首尾的空格
-fmt.Println(strings.TrimSpace(str2))	//hello world
-
-//去掉字符串首尾指定的字符
-fmt.Println(strings.Trim(str2,"t"))		//  hello world
-fmt.Println(strings.Trim(str2,"ttt"))	//注意相同的字母即时数量比str的多也能去掉  hello world
-fmt.Println(strings.Trim(str2,"  "))	//去除首尾空格hello world tt
-fmt.Println(strings.Trim(str2,"b"))		//没有b时不报错返回原字符串  hello world tt
-```
-
-
-
-例子：
-
-**TrimLeftFunc(str,func(rune)rune) string**
-
-去除字符串右侧的所有指定字符
-
-例子：
-
 ```go
 str := "ttt hello t world"
-fmt.Println(strings.TrimRight(str,"t"))
+fmt.Println(strings.TrimLeft(str,"t"))
 ```
 
 输出： hello t world   <font color = red>注意：hello前面有个空格</font>
@@ -327,16 +451,35 @@ fmt.Println(strings.TrimRight(str,"t"))
 
 ```go
 str := "sstttst hello t world"
-fmt.Println(strings.TrimRight(str,"st"))
+fmt.Println(strings.TrimLeft(str,"st"))
 ```
 
 输出：hello t world
 
-**TrimPrefix(str,prex)**
+**TrimLeftFunc(str,func(rune)rune) string**
 
-去指定前缀
+根据自定义函数去除字符串右侧的所有指定字符
 
 例子：
+
+```go
+fmt.Printf("[%q]", strings.TrimLeftFunc("\t\rhello\t\r", unicode.IsSpace))
+```
+
+输出：["hello\t\r"]
+
+**TrimPrefix(str,prex)**
+
+删除字符串str的指定前缀prex,当前缀不是prex时返回原字符串str
+
+例子：
+
+```go
+str := "hello world"
+fmt.Println(strings.TrimPrefix(str,"hel"))
+```
+
+输出：lo world
 
 **TrimRight(str,cutset)**
 
@@ -364,9 +507,15 @@ fmt.Println(strings.TrimRight(str,"st"))
 
 **TrimRightFunc(str,func(rune)rune) string**
 
-右侧去指定字符
+根据自定义函数，去除右侧指定字符
 
 例子：
+
+```go
+fmt.Printf("[%q]", strings.TrimRightFunc("\t\rhello\t\r", unicode.IsSpace))
+```
+
+输出：["\t\rhello"]
 
 **TrimSpace(str)**
 
@@ -388,17 +537,51 @@ fmt.Println(strings.TrimSpace(str))
 
 例子：
 
-例子：
+```go
+str := "hello world"
+fmt.Println(strings.TrimSuffix(str,"ld"))
+```
+
+输出： hello wor
+
+### 不常用函数
+
+**func Compare(a, b string) int**
+
+比较返回一个按字典顺序比较两个字符串的整数。如果a == b则结果为0，如果a <b则结果为-1，如果a> b则结果为+1。 此外：仅包含与包字节对称的比较。使用内置字符串比较运算符==，<，>等通常更清晰，速度更快。 
 
 例子：
 
-例子：
+```go
+fmt.Println(strings.Compare("a","b"),strings.Compare("a","a"),strings.Compare("b","a"))
+```
+
+输出：-1 0 1
+
+注意：使用大于等于小于同样可以得到同样的答案。
+
+**Title(s string) string**
+
+返回s中每个单词的首字母都改为标题格式的字符串拷贝。
+
+BUG: Title用于划分单词的规则不能很好的处理Unicode标点符号（标点符号会前后会被认为是两个单次）
 
 例子：
 
+```go
+fmt.Println(strings.Title("Twas brillig and the slithy gopher..."))
+```
 
+输出：Twas Brillig,And The Slithy Gopher...
 
-原文链接：https://blog.csdn.net/wujiangwei567/article/details/90488366
+**ToUpperSpecial(_case unicode.SpecialCase, s string) string**
 
+使用_case规定的字符映射，返回将所有字母都转为对应的大写版本的拷贝。
 
+例子：
 
+**ToTitleSpecial(_case unicode.SpecialCase, s string) string**
+
+使用_case规定的字符映射，返回将所有字母都转为对应的标题版本的拷贝。
+
+例子：
