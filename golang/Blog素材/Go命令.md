@@ -18,7 +18,7 @@
 
 用于编译我们指定的源码文件或代码包及他们的依赖包。当编译包时，忽略已“_test.go”结尾的文件。
 
-## 用法
+### 用法
 
 ```go
 go build [-o output] [-i] [build flags] [packages]
@@ -26,7 +26,7 @@ go build [-o output] [-i] [build flags] [packages]
 
 ### 详解
 
-#### 标记
+#### 常用标记
 
 - `-i`:在build过程中安装那些编译目标依赖的且未被安装的代码包。
 - `-a`:强行对所有涉及道德代码包（包括标准库中的代码包）进行重新构建，即使它们已经是最新的了
@@ -34,29 +34,77 @@ go build [-o output] [-i] [build flags] [packages]
 - `-n`:打印编译期间所用到的其他命令，但是并不真正执行它们。
 - `-v`:打印出那些被编译的代码包的名字
 - `-x`:打印编译期间所用到的其他命令，并执行他们（与`-n`的差别）
-- 
+- `-p n`: 指定编译过程中执行个任务的并行数量（确切的说应该是并发数量）。在默认情况下，该数量等于CPU的逻辑合数。但是在`darwin/arm`平台下，默认数量是1
+- `-race`: 开启静态条件的检测
+- `-work`: 打印编译时生成的临时工作目录的路径，并在编译结束时保留它。在默认情况下，编译结束时会删除该目录。
 
+#### 不常用标记
 
+- `-asmflags`：传递给每次go tool asm 调用的参数。此标记后可以跟另外一些标记，如`-D`、`-I`、`-s`等。这些后跟的标记用于控制Go语言编译汇编语言文件时的行为。
+- `-buildmode`：此标记用于指定编译模式，使用方式如`-buildingmode=default`(这等同于默认情况下的设置)。此标记支持的编译模式目前有八种，分别是`archive` `c-archive` `c-shared` `default` `shared` `exe` `pie` `plugin` 。借此我们可以控制编译器在编译完成后生成静态链接库（即`.a`文件）、动态链接库（即`.os`文件）或`/`和可执行文件（在windows下是`.exe`文件）。
+- `-compiler`：此标记用于指定当前使用的编译器的名称。其值可以为`gc`或`gccgo`。其中，gc编译器即为Go语言自带的编辑器，而gccgo编译器则为GCC提供的Go语言编译器。而GCC则是GNU项目出品的编译器套件。
+- `gccgoflags`：此标记用于指定需要传递给gccgo编译器或链接器的标记的列表
+- `-gcflags`：此标记用于指定传递给`go tool compile`命令的标记的列表
+- `-installsuffix`：为了使当前的输出目录与默认的编译输出目录分离，可以使用这个标记。
+- `-ldflags`：此标记用于指定需要传递给`go tool link`命令的标记的列表
+- `-linkshared`：此标记用于与`-buildmode=shared`一同使用。后者会是做媒编译目标的非main代码包被合并到一个静态链接库文件中，而后者则会在此之上进行链接操作。
+- `-mod mode`：使用的木块下载模式：`readonly` `vendor` `mod`
+- `-modefile file`：在模块感知模式下，读取（并且可能写入）备用的go.mod文件，而不是在木块根目录下的go.mod文件。名字为“go.mod”的文件仍然必须存在用来确定模块根目录，但其不会被访问。当`-modfile`被指定，备用的go.sum文件也会被使用：其路径从`-modfile`标志产生，通过去除"/mod"扩展名并追加“sum”。
+- `-pkgdir`：此标记用于指定一个目录。编译器会只从该目录中加载代码包的归档文件，并会把编译可能会生成的代码包归档文件放置在该目录下
+- `-tags`：此标记用于指定在实际编译期间需要手里的编译标签的列表。这些编译标签一般会作为源码文件开始出的注释的一部分(在文件开始出添加注释内容)
+- `-tooexec`：此标记可以让我们去自定义在编译期间使用一些go语言自带工具（如vet、asm等）的方式
+- `-trimpath`：从目标可执行文件中移除所有文件系统路径。作为文件系统绝对路径的代替，记录下的文件名将以"go"（对标准库）或者“模块路径@版本”（当使用模块），或“import路径”(当使用GOPATH)开头。
 
 ## go clean
 
 ### 概述
 
-移除对象文件
+删除执行其他命令时产生的一些文件和目录
 
+### 用法
 
+```go
+go clean [clean flags] [build flags] [packages]
+```
 
 ### 详解
+
+#### 常用标记
+
+- `-cache`：删除整个go build缓存
+- `-i`：同时删除安装当前代码包时所产生的结果文件。如果当前代码包中只包含库源码文件，则结果文件指的就是在工作去的pkg目录的相应目录下的归档文件。如果当前代码包中只包含一个命令源码文件，则结果文件指的就是在工作区的bin目录下的可执行文件。
+- `-r`：同时删除当前代码包的所依赖包的上述目录和文件。
+
+#### 不常用标记
+
+- `-modcache`：删除整个模块下载缓存，包括制定版本以来的已解压的源代码。
+- `-n`：打印实际需要执行的命令，但不运行。
+- `-testcache`：令`go build`缓存中所有测试结果过期。
+- `-x`：打印实际需要执行的命令，并运行。
+
+
 
 ## go doc
 
 ### 概述
 
-显示包或者符号的文档
-
-
+打印附于Go语言程序实体上的文档。我们可以通过把程序实体的标识符作为该命令的参数来达到查看其文档的目的。
 
 ### 详解
+
+#### 标识
+
+`-c`：加入此标记后，会使`go doc`命令区分参数中字母的大小写。默认情况下，命令是大小写不敏感的。
+
+`-u`：加入此标记后，会使`go doc`命令同时打印出不可导出的程序实体的文档。默认情况下，这部分文档是不会被打印出来的。
+
+`-cmd`：加入此标记后，会使`go doc`命令同时打印出main包中的可到处的程序实体的文档。默认情况下，这部分文档是不会被打印出来的。
+
+`-short`：每个符号一行表示。
+
+`-all`：显示包的所有文档。
+
+`-src`：显示程序实体的完整源代码。这将显示其声明和定义的完整go代码，如函数定义（包括函数体），类型声明或闭包引用的常量块。输出可能因此包含未导出的细节。
 
 ## go env
 
@@ -66,21 +114,19 @@ go build [-o output] [-i] [build flags] [packages]
 
 ### 详解
 
-## go fix
+#### 标识
 
-### 概述
+- `-json`：以JSON格式打印环境变量，而不是像shell脚本一样。
+- `-u`：需要一个或多个参数，如果指定名字的环境变量已经使用`go evn -w`设置，则取消其默认设置。
+- `-w`：需要一个或多个格式为NAME=VALUE的参数，使用指定的值修改指定名字的环境变量的默认设置。
+
+## go fix
 
 运行go tool fix
 
-### 详解
-
 ## go fmt
 
-### 概述
-
 运行gofmt进行格式化
-
-### 详解
 
 ## go generate
 
@@ -96,13 +142,38 @@ go build [-o output] [-i] [build flags] [packages]
 
 下载并安装包和依赖
 
+### 用法
+
+```go
+go get [-d] [-t] [-u] [-v] [-insecure] [build flags] [packages]
+```
+
+
+
 ### 详解
+
+`go get`可以接受所有可用于`go build`和`go install`命令的标记。
+
+#### 特有标记
+
+- `-d`：让命令程序只执行下载动作，而不执行安装动作
+- `-f`：仅在使用`-u`标记时才有效。该标记会让命令程序忽略掉已下载代码包的导入路径的检查。如果下载并安装的代码包所属的项目是你从别人那里Fork过来的，那么这样做就尤为重要了。
+- `-fix`：让命令程序在下载代码包后限制性修正动作，而后在进行编译和安装。
+- `-insecure`：允许命令程序使用非安全的scheme（如http）去下载指定的代码包。如果你用的代码仓库没有HTTPS支持，可以添加此标记。请在确定安全的情况下使用。
+- `-t`：让命令程序同时下载并安装指定的代码包的测试源码文件中依赖的代码包。
+- `-u`：让命令利用网络来更新已有代码包及其依赖包。默认情况下，该命令只会从网络上下载本地不存在的代码包，而不会更新已有的代码包。
+
+
 
 ## go install
 
 ### 概述
 
-编译并安装包和依赖
+编译并安装指定的代码包及它们的依赖包。
+
+### 用法
+
+
 
 ### 详解
 
@@ -110,9 +181,23 @@ go build [-o output] [-i] [build flags] [packages]
 
 ### 概述
 
-列出包
+列出指定的代码包的信息。
 
-### 详解
+### 用法
+
+```go
+go list [-f format] [-json] [-m] [list flags] [build flags] [packages]
+```
+
+### 标记
+
+- `-e`：改变对错误包的处理方式，那些错误包或者不存在或者内容残缺。默认情况下，list命令会为每个错误包打印一条错误信息至标准错误输出中，然后在普通的打印中忽略这些错误包。使用`-e`标记，list命令将不会打印错误信息至标准错误输出中，而是以普通打印的方式处理错误包。错误包将非空的ImportPath和非nil的Error字段；其他信息可能会也可能不会缺失（置位零值）
+- `-deps`：不只是遍历指定名字的包，也会遍历它们的依赖。list以深度优先后序遍历的方式遍历它们，因此一个包会在他的所有依赖之后列出。未在命令行中显式列出的包将有一个设置为true的DepOnly字段。
+- `-export`：将Export字段设置为包含指定包最新导出信息的文件名。
+- `-compiled`：将CompiledGoFiles 设置为提交给编译器的go源文件。通常，这以为着其会重复GoFiles列出的文件，然后也会添加通过处理CgoFiles和SwigFiles生成的Go代码。Imports列表包含来自GoFiles和CompiledGoFiles所有导入的并集。
+- `-m`：列出模块而不是包。
+- `-json`：包数据已JSON格式打印，而不是使用template包的格式。
+- `-find`：找出指定名字的包，但不解析他们的依赖：Imports和Deps列表将会为空。
 
 ## go mod
 
@@ -136,7 +221,19 @@ go build [-o output] [-i] [build flags] [packages]
 
 运行测试
 
+### 用法
+
+```go
+go test [build/test flags] [packages] [build/test flags & test binary flags]
+```
+
 ### 详解
+
+#### 常用标记
+
+- `-c`：生成用于运行测试的可执行文件，但不执行它。这个可执行的文件会被命名为"pkg.test"其中的"pkg"即为被测试代码包的导入路径的最后一个元素的名称。 
+- `-i`：安装/重新安装隐形测试所需的依赖包，但不编译和运行测试代码。
+- `-o`：指定用于运行测试的可执行文件的名称。追加该标记不会影响测试代码的运行，除非同时追加了标`-c`或者`-i`
 
 ## go tool
 
@@ -152,219 +249,11 @@ go build [-o output] [-i] [build flags] [packages]
 
 显示go版本
 
-### 详解
+
 
 ## go vet
 
 ### 概述
 
-运行go tool vet
+用于检查Go语言源码中静态错误的简单工具，是对`go tool vet`命令的简单封装。
 
-### 详解
-
-
-
-
-
-	Go is a tool for managing Go source code.
-	
-	Usage:
-	
-		go <command> [arguments]
-	
-	The commands are:
-	
-		bug         start a bug report
-		build       compile packages and dependencies
-		clean       remove object files and cached files
-		doc         show documentation for package or symbol
-		env         print Go environment information
-		fix         update packages to use new APIs
-		fmt         gofmt (reformat) package sources
-		generate    generate Go files by processing source
-		get         add dependencies to current module and install them
-		install     compile and install packages and dependencies
-		list        list packages or modules
-		mod         module maintenance
-		run         compile and run Go program
-		test        test packages
-		tool        run specified go tool
-		version     print Go version
-		vet         report likely mistakes in packages
-	
-	Use "go help <command>" for more information about a command.
-	
-	Additional help topics:
-	
-		buildmode   build modes
-		c           calling between Go and C
-		cache       build and test caching
-		environment environment variables
-		filetype    file types
-		go.mod      the go.mod file
-		gopath      GOPATH environment variable
-		gopath-get  legacy GOPATH go get
-		goproxy     module proxy protocol
-		importpath  import path syntax
-		modules     modules, module versions, and more
-		module-get  module-aware go get
-		module-auth module authentication using go.sum
-		module-private module configuration for non-public modules
-		packages    package lists and patterns
-		testflag    testing flags
-		testfunc    testing functions
-	
-	Use "go help <topic>" for more information about that topic.
-
-
-usage: go bug
-
-Bug opens the default browser and starts a new bug report.
-The report includes useful system information.
-
-
-
-
-
-
-
-usage: go build [-o output] [-i] [build flags] [packages]
-
-Build compiles the packages named by the import paths,
-along with their dependencies, but it does not install the results.
-
-If the arguments to build are a list of .go files from a single directory,
-build treats them as a list of source files specifying a single package.
-
-When compiling packages, build ignores files that end in '_test.go'.
-
-When compiling a single main package, build writes
-the resulting executable to an output file named after
-the first source file ('go build ed.go rx.go' writes 'ed' or 'ed.exe')
-or the source code directory ('go build unix/sam' writes 'sam' or 'sam.exe').
-The '.exe' suffix is added when writing a Windows executable.
-
-When compiling multiple packages or a single non-main package,
-build compiles the packages but discards the resulting object,
-serving only as a check that the packages can be built.
-
-The -o flag forces build to write the resulting executable or object
-to the named output file or directory, instead of the default behavior described
-in the last two paragraphs. If the named output is a directory that exists,
-then any resulting executables will be written to that directory.
-
-The -i flag installs the packages that are dependencies of the target.
-
-The build flags are shared by the build, clean, get, install, list, run,
-and test commands:
-
-	-a
-		force rebuilding of packages that are already up-to-date.
-	-n
-		print the commands but do not run them.
-	-p n
-		the number of programs, such as build commands or
-		test binaries, that can be run in parallel.
-		The default is the number of CPUs available.
-	-race
-		enable data race detection.
-		Supported only on linux/amd64, freebsd/amd64, darwin/amd64, windows/amd64,
-		linux/ppc64le and linux/arm64 (only for 48-bit VMA).
-	-msan
-		enable interoperation with memory sanitizer.
-		Supported only on linux/amd64, linux/arm64
-		and only with Clang/LLVM as the host C compiler.
-		On linux/arm64, pie build mode will be used.
-	-v
-		print the names of packages as they are compiled.
-	-work
-		print the name of the temporary work directory and
-		do not delete it when exiting.
-	-x
-		print the commands.
-	
-	-asmflags '[pattern=]arg list'
-		arguments to pass on each go tool asm invocation.
-	-buildmode mode
-		build mode to use. See 'go help buildmode' for more.
-	-compiler name
-		name of compiler to use, as in runtime.Compiler (gccgo or gc).
-	-gccgoflags '[pattern=]arg list'
-		arguments to pass on each gccgo compiler/linker invocation.
-	-gcflags '[pattern=]arg list'
-		arguments to pass on each go tool compile invocation.
-	-installsuffix suffix
-		a suffix to use in the name of the package installation directory,
-		in order to keep output separate from default builds.
-		If using the -race flag, the install suffix is automatically set to race
-		or, if set explicitly, has _race appended to it. Likewise for the -msan
-		flag. Using a -buildmode option that requires non-default compile flags
-		has a similar effect.
-	-ldflags '[pattern=]arg list'
-		arguments to pass on each go tool link invocation.
-	-linkshared
-		build code that will be linked against shared libraries previously
-		created with -buildmode=shared.
-	-mod mode
-		module download mode to use: readonly, vendor, or mod.
-		See 'go help modules' for more.
-	-modcacherw
-		leave newly-created directories in the module cache read-write
-		instead of making them read-only.
-	-modfile file
-		in module aware mode, read (and possibly write) an alternate go.mod
-		file instead of the one in the module root directory. A file named
-		"go.mod" must still be present in order to determine the module root
-		directory, but it is not accessed. When -modfile is specified, an
-		alternate go.sum file is also used: its path is derived from the
-		-modfile flag by trimming the ".mod" extension and appending ".sum".
-	-pkgdir dir
-		install and load all packages from dir instead of the usual locations.
-		For example, when building with a non-standard configuration,
-		use -pkgdir to keep generated packages in a separate location.
-	-tags tag,list
-		a comma-separated list of build tags to consider satisfied during the
-		build. For more information about build tags, see the description of
-		build constraints in the documentation for the go/build package.
-		(Earlier versions of Go used a space-separated list, and that form
-		is deprecated but still recognized.)
-	-trimpath
-		remove all file system paths from the resulting executable.
-		Instead of absolute file system paths, the recorded file names
-		will begin with either "go" (for the standard library),
-		or a module path@version (when using modules),
-		or a plain import path (when using GOPATH).
-	-toolexec 'cmd args'
-		a program to use to invoke toolchain programs like vet and asm.
-		For example, instead of running asm, the go command will run
-		'cmd args /path/to/asm <arguments for asm>'.
-
-The -asmflags, -gccgoflags, -gcflags, and -ldflags flags accept a
-space-separated list of arguments to pass to an underlying tool
-during the build. To embed spaces in an element in the list, surround
-it with either single or double quotes. The argument list may be
-preceded by a package pattern and an equal sign, which restricts
-the use of that argument list to the building of packages matching
-that pattern (see 'go help packages' for a description of package
-patterns). Without a pattern, the argument list applies only to the
-packages named on the command line. The flags may be repeated
-with different patterns in order to specify different arguments for
-different sets of packages. If a package matches patterns given in
-multiple flags, the latest match on the command line wins.
-For example, 'go build -gcflags=-S fmt' prints the disassembly
-only for package fmt, while 'go build -gcflags=all=-S fmt'
-prints the disassembly for fmt and all its dependencies.
-
-For more about specifying packages, see 'go help packages'.
-For more about where packages and binaries are installed,
-run 'go help gopath'.
-For more about calling between Go and C/C++, run 'go help c'.
-
-Note: Build adheres to certain conventions such as those described
-by 'go help gopath'. Not all projects can follow these conventions,
-however. Installations that have their own conventions or that use
-a separate software build system may choose to use lower-level
-invocations such as 'go tool compile' and 'go tool link' to avoid
-some of the overheads and design decisions of the build tool.
-
-See also: go install, go get, go clean.
