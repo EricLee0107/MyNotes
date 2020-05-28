@@ -239,9 +239,29 @@ go test [build/test flags] [packages] [build/test flags & test binary flags]
 
 ### 概述
 
-运行go提供的工具
+运行参数指定的go tool命令。不带参数则打印已知的工具列表。
 
 ### 详解
+
+- `-addr2line`：
+- `-asm`：
+- `-buildid`
+- `cgo`：运行Go语言自带的cgo工具。这个工具可以是我们创建能够调用c语言代码的go语言源码文件。这使得我们可以使用Go语言代码去封装一些C语言的代码库，并提供给GO语言代码或项目使用。
+- `compile`
+- `cover`
+- `dist`
+- `doc`
+- `fix`
+- `link`
+- `nm`
+- `objdump`
+- `pack`
+- `pprof`：交互式的访问pprof生成的数据文件的内容。命令会分析指定的数据文件并根据我们的要求为我们提供高可读性的输出信息。
+- `test2json`
+- `trace`
+- `vet`
+
+
 
 ## go version
 
