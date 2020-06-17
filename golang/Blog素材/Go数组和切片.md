@@ -143,3 +143,61 @@ func RemoveZero(slice []interface{}) []interface{}{
 	[]Type{val1,val2,...,valN}
 ```
 
+
+
+
+
+
+
+```go
+	a := make([]int32, 10)
+	for i := 0; i < 10; i++ {
+		a[i] = int32(i + 10)
+	}
+	b := a[3:]
+	b[3] = 33
+	fmt.Println(a)
+	fmt.Println(b)
+```
+
+输出：
+
+```
+[10 11 12 13 14 15 33 17 18 19]
+[13 14 15 33 17 18 19]
+```
+
+在改变b[3]时也改变了a[6]原因是两个值的指针相同
+
+
+
+
+
+翻转切片
+
+```go
+func reverse(s []int) {
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
+}
+```
+
+
+
+切片循环向左旋转n个元素
+
+```go
+s := []int{0, 1, 2, 3, 4, 5}
+// Rotate s left by two positions.
+reverse(s[:2])
+reverse(s[2:])
+reverse(s)
+fmt.Println(s) // "[2 3 4 5 0 1]"
+```
+
+
+
+append 
+
+内置append实现策略
