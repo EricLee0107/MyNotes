@@ -49,6 +49,7 @@
 - [ ] go的runtime如何实现
 - [ ] go什么情况下会发生内存泄漏？（他说ctx没有cancel的时候，这个真不知道）
 - [ ] channel的实现？
+- [ ] map扩容和迁移
 
 ## Go包
 
