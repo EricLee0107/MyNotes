@@ -68,59 +68,136 @@
 
 ## 高级运算
 
-| 数学符号                                                   | 含义               | Markdown                  | 举例                                   |
-| ---------------------------------------------------------- | ------------------ | ------------------------- | -------------------------------------- |
-| $\overline{求平均的算式}$                                  | 平均数运算         | `\overline{求平均的算式}` | `$\overline{xyz}$` -> $\overline{xyz}$ |
-| $\sqrt[开方数]{被开方数}$                                  | 开方运算           | `\sqrt[开方数]{被开方数}` |                                        |
-| $\sqrt {被开平方数}$                                       | 开二次方运算       | `\sqrt{被开方数}`         |                                        |
-| $\log_{x}{y}$                                              | 对数运算           | `\log_{底数}{真数}`       |                                        |
-| $ln {x}$                                                   | 自然对数运算       | `\ln {真数}`              |                                        |
-| $lg {x}$                                                   | 以10为底的对数运算 | `\lg {真数}`              |                                        |
-| $\lim{a+b}$                                                | 极限运算           | `\lim {a+b}`              |                                        |
-| $\displaystyle \lim^{x \to \infty}_{y \to 0}{\frac{x}{y}}$ | 极限运算           |                           |                                        |
-| $\lim_{n\leftarrow+\infty}$                                | 求和运算           |                           |                                        |
-|                                                            | 求和运算           |                           |                                        |
-|                                                            | 积分运算           |                           |                                        |
-|                                                            | 积分运算           |                           |                                        |
-|                                                            | 微分运算           |                           |                                        |
-|                                                            | 矩阵表示           |                           |                                        |
-|\overline{}||
-，符号：\sqrt，如：$\sqrt x$
-，符号：\sqrt[开方数]{被开方数}，如：$\sqrt[3]{x+y}$
-，符号：\log，如：$\log(x)$
-，符号：\lim，如：$\lim^{x \to \infty}_{y \to 0}{\frac{x}{y}}$
-，符号：，如：$\displaystyle \lim^{x \to \infty}_{y \to 0}{\frac{x}{y}}$
-，符号：\sum，如：$\sum^{x \to \infty}_{y \to 0}{\frac{x}{y}}$
-，符号：\displaystyle \sum，如：$\displaystyle \sum^{x \to \infty}_{y \to 0}{\frac{x}{y}}$
-，符号：\int，如：$\int^{\infty}_{0}{xdx}$
-，符号：\displaystyle \int，如：$\displaystyle \int^{\infty}_{0}{xdx}$
-，符号：\partial，如：$\frac{\partial x}{\partial y}$
-，符号：\begin{matrix} \end{matrix}，如：$\left[ \begin{matrix} 1 &2 &\cdots &4\5 &6 &\cdots &8\\vdots &\vdots &\ddots &\vdots\13 &14 &\cdots &16\end{matrix} \right]$
-
-作者：DanielGavin
-链接：https://www.jianshu.com/p/e74eb43960a1
-来源：简书
-著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
-
+| 数学符号                                                     | 含义               | Markdown                      | 举例（Markdown内容 -> 公式效果）                         |
+| ------------------------------------------------------------ | ------------------ | ----------------------------- | -------------------------------------------------------- |
+| $\overline{求平均的算式}$                                    | 平均数运算         | `\overline{求平均的算式}`     | `$\overline{xyz}$` -> $\overline{xyz}$                   |
+| $\sqrt[开方数]{被开方数}$                                    | 开方运算           | `\sqrt[开方数]{被开方数}`     |                                                          |
+| $\sqrt {被开平方数}$                                         | 开二次方运算       | `\sqrt{被开方数}`             |                                                          |
+| $\log_{x}{y}$                                                | 对数运算           | `\log_{底数}{真数}`           |                                                          |
+| $ln {x}$                                                     | 自然对数运算       | `\ln {真数}`                  |                                                          |
+| $lg {x}$                                                     | 以10为底的对数运算 | `\lg {真数}`                  |                                                          |
+| $\lim{a+b}$                                                  | 极限运算           | `\lim 极限算式`               | $\lim^{x \to \infty}_{y \to 0}{\frac{x}{y}}$             |
+| $\sum{求和算式}$                                             | 求和运算（累加）   | `\sum 求和算式`               | `$\sum^{100}_{i=1}$` -> $\sum^{100}_{i=1}$               |
+| $\prod 累乘算式$                                             | 累乘运算           | `\prod 累乘算式`              | `$\prod_{n=1}^{99}{x_n}$` -> $\prod_{n=1}^{99}{x_n}$     |
+| $\int$                                                       | 积分运算           | `\int 积分算式`               | `$\int^{\infty}_{0}f({x})$` -> $\int^{\infty}_{0}f({x})$ |
+| $\partial$                                                   | 微分运算           | `\partial`                    | $\frac{\partial x}{\partial y}$                          |
+| $\left[ \begin{matrix} 1 &2 &\cdots &4\\5 &6 &\cdots &8 \\\vdots &\vdots &\ddots &\vdots \\13 &14 &\cdots &16\end{matrix} \right]$ | 矩阵表示           | `\begin{matrix} \end{matrix}` |                                                          |
 
 
 ## 逻辑运算
 
+|  数学符号  |    含义    |  Markdown  |     举例（Markdown内容 -> 公式效果）     |
+| :--------: | :--------: | :--------: | :--------------------------------------: |
+|    $=$     |    等于    |    `=`     |          `$x+y=z$`  ->  $x+y=z$          |
+|    $>$     |    小于    |    `>`     |          `$x+y>z$`  ->  $x+y>z$          |
+|    $<$     |    大于    |    `<`     |          `$x+y<z$`  ->  $x+y<z$          |
+|   $\geq$   |  大于等于  |   `\geq`   |     `$x+y \geq z$`  ->  $x+y \geq z$     |
+|   $\leq$   |  小于等于  |   `\leq`   |     `$x+y \leq z$`  ->  $x+y \leq z$     |
+|   $\neq$   |   不等于   |   `\neq`   |     `$x+y \neq z$`  ->  $x+y \neq z$     |
+|  $\ngeq$   | 不大于等于 |  `\ngeq`   |    `$x+y \ngeq z$`  ->  $x+y \ngeq z$    |
+| $\not\geq$ | 不大于等于 | `\not\geq` | `$x+y \not\geq z$`  ->  $x+y \not\geq z$ |
+|  $\nleq$   | 不小于等于 |  `\nleq`   |    `$x+y \nleq z$`  ->  $x+y \nleq z$    |
+| $\not\leq$ | 不小于等于 | `\not\leq` | `$x+y \not\leq z$`  ->  $x+y \not\leq z$ |
+| $\approx$  |   约等于   | `\approx`  |  `$x+y \approx z$`  ->  $x+y \approx z$  |
+|  $\equiv$  |   恒等于   |  `\equiv`  |   `$x+y \equiv z$`  ->  $x+y \equiv z$   |
+
+
+
 ## 集合运算
 
-## 数组符号
+| 符号          | 含义       | Markdown      | 举例（Markdown内容 -> 公式效果）         |
+| ------------- | ---------- | ------------- | ---------------------------------------- |
+| $\in$         | 属于       | `\in`         | `$x \in y$` -> $x \in y$                 |
+| $\notin$      | 不属于     | `\notin`      | `$x \notin y$` -> $x \notin y$           |
+| $\not\in$     | 不属于     | `\not\in`     | `$x \not\in y$` -> $x \not\in y$         |
+| $\subset$     | 子集       | `\subset`     | `$x \subset y$` -> $x \subset y$         |
+| $\supset$     | 子集       | `\supset`     | `$x \supset y$` -> $x \supset y$         |
+| $\subseteq$   | 真子集     | `\subseteq`   | `$x \subseteq y$` -> $x \subseteq y$     |
+| $\subsetneq$  | 非真子集   | `\subsetneq`  | `$x \subsetneq y$` -> $x \subsetneq y$   |
+| $\supseteq$   | 真子集     | `\supseteq`   | `$x \supseteq y$` -> $x \supseteq y$     |
+| $\supsetneq$  | 非真子集   | `\supsetneq`  | `$x \supsetneq y$` -> $x \supsetneq y$   |
+| $\not\subset$ | 非子集     | `\not\subset` | `$x \not\subset y$` -> $x \not\subset y$ |
+| $\not\supset$ | 非子集     | `\not\supset` | `$x \not\supset y$` -> $x \not\supset y$ |
+| $\cup$        | 并集       | `\cup`        | `$x \cup y$` -> $x \cup y$               |
+| $\cap$        | 交集       | `\cap`        | `$x \cap y$` -> $x \cap y$               |
+| $\setminus$   | 差集       | `\setminus`   | `$x \setminus y$` -> $x \setminus y$     |
+| $\bigodot$    | 同或       | `\bigodot`    | `$x \bigodot y$` -> $x \bigodot y$       |
+| $\bigotimes$  | 同与       | `\bigotimes`  | `$x \bigotimes y$` -> $x \bigotimes y$   |
+| $\mathbb{R}$  | 实数集合   | `\mathbb{R}`  |                                          |
+| $\mathbb{Z}$  | 自然数集合 | `\mathbb{Z}   |                                          |
+| $\emptyset$   | 空集       | `\emptyset`   |                                          |
 
-## 
 
 
+
+
+## 三角函数
+
+|   符号    |    含义    | Markdown  |
+| :-------: | :--------: | :-------: |
+|  $\sin$   |  正弦函数  |  `\sin`   |
+|  $\cos$   |  余弦函数  |  `\cos`   |
+|  $\tan$   |  正切函数  |  `\tan`   |
+|  $\cot$   |  余切函数  |  `\cot`   |
+|  $\sec$   |  正割函数  |  `\sec`   |
+|  $\csc$   |  余割函数  |  `\csc`   |
+| $\arcsin$ | 反正弦函数 | `\arcsin` |
+| $\arccos$ | 反余弦函数 | `\arccos` |
+| $\arctan$ | 反正切函数 | `\arctan` |
+
+## 箭头
+
+|     符号      |  含义  |   Markdown    |
+| :-----------: | :----: | :-----------: |
+|  $\uparrow$   | 上箭头 |  `\uparrow`   |
+|  $\Uparrow$   | 上箭头 |  `\Uparrow`   |
+| $\downarrow$  | 下箭头 | `\downarrow`  |
+| $\Downarrow$  | 下箭头 | `\Downarrow`  |
+| $\leftarrow$  | 左箭头 | `\leftarrow`  |
+| $\Leftarrow$  | 左箭头 | `\Leftarrow`  |
+| $\rightarrow$ | 右箭头 | `\rightarrow` |
+| $\Rightarrow$ | 右箭头 | `\Rightarrow` |
+
+[更多箭头字符](https://zh.wikipedia.org/wiki/Help:%E6%95%B0%E5%AD%A6%E5%85%AC%E5%BC%8F#%E7%AE%AD%E5%A4%B4)
+
+## 省略号
+
+|   符号   |       含义       | Markdown |
+| :------: | :--------------: | :------: |
+| $\ldots$ | 底端对齐的省略号 | `\ldots` |
+| $\cdots$ | 中线对齐的省略号 | `\cdots` |
+| $\vdots$ | 竖直对齐的省略号 | `\vdots` |
+| $\ddots$ |  斜对齐的省略号  | `\ddots` |
+
+
+
+## 其他常用符号
+
+
+
+|   符号   | 含义 | Markdown |
+| :------: | :--: | :------: |
+| $\infty$ |      | `\infty` |
+| $\imath$ |      | `\imath` |
+| $\jmath$ |      | `\jmath` |
+|    $$    |      |    ``    |
+|    $$    |      |    ``    |
+|    $$    |      |    ``    |
+|    $$    |      |    ``    |
 
 
 
 其他字符：
 
+\left[
+
+\right]
+
 \leftarrow
 
 \rightarrow
+
+\vec{a}
 
 
 
