@@ -73,7 +73,7 @@
 | ${分子}\over{分母}$ |  分式表示  | `{分子}\over{分母}` | `${17}\over{83}$` - > ${17}\over{83}$ |
 |        $||$         |  绝对值符  |        `||`         | `$|x+y|$` - > $|x+y|$                 |
 
-
+<div STYLE="page-break-after: always;"></div>
 
 ## 逻辑运算
 
@@ -96,7 +96,7 @@
 
 
 
-
+<div STYLE="page-break-after: always;"></div>
 
 ## 高级运算
 
@@ -117,7 +117,7 @@
 | $\partial$                                                   | 微分运算           | `\partial`                    | $\frac{\partial x}{\partial y}$                          |
 | $\left[ \begin{matrix} 1 &2 &\cdots &4\\5 &6 &\cdots &8 \\\vdots &\vdots &\ddots &\vdots \\13 &14 &\cdots &16\end{matrix} \right]$ | 矩阵表示           | `\begin{matrix} \end{matrix}` |                                                          |
 
-
+<div STYLE="page-break-after: always;"></div>
 
 ## 集合运算
 
@@ -145,7 +145,7 @@
 | $\mathbb{Z}$  | 自然数集合 | `\mathbb{Z}   |                                          |
 | $\emptyset$   | 空集       | `\emptyset`   |                                          |
 
-
+<div STYLE="page-break-after: always;"></div>
 
 ## 三角函数
 
@@ -182,7 +182,7 @@
 
 [更多箭头字符](https://zh.wikipedia.org/wiki/Help:%E6%95%B0%E5%AD%A6%E5%85%AC%E5%BC%8F#%E7%AE%AD%E5%A4%B4)
 
-
+<div STYLE="page-break-after: always;"></div>
 
 ## 省略号
 
@@ -195,7 +195,7 @@
 | $\vdots$ | 竖直对齐的省略号 | `\vdots` |
 | $\ddots$ |  斜对齐的省略号  | `\ddots` |
 
-
+<div STYLE="page-break-after: always;"></div>
 
 ## 希腊字母
 
@@ -230,7 +230,7 @@
 |   $\Psi$   |   `\Psi`   |    $\psi$     |    `\psi`     |
 |  $\Omega$  |  `\Omega`  |   $\omega$    |   `\omega`    |
 
-
+<div STYLE="page-break-after: always;"></div>
 
 ## 其他常用符号
 
