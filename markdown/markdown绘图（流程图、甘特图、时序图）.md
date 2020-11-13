@@ -14,7 +14,7 @@
 
 `st=>start: 开始`
 
-![image-20201110172446730](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20201110172446730.png)
+![image-20201110172446730](https://eric-typora-img.oss-cn-beijing.aliyuncs.com/typora/202011/13/114621-230417.png)
 
 
 
@@ -56,7 +56,7 @@
 
 `para=>parallel: 平行节点`
 
-![image-20201110172528189](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20201110172528189.png)
+![image-20201110172528189](https://eric-typora-img.oss-cn-beijing.aliyuncs.com/typora/202011/13/114629-64297.png)
 
 
 
