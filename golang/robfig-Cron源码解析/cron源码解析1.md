@@ -79,9 +79,70 @@ Cron在创建时有三个字段是通过调用其他函数来初始化的：
 
 第一个，`chain`字段，通过调用`NewChain()`函数来赋值。
 
+源代码如下：
+
+```go
+func NewChain(c ...JobWrapper) Chain {
+	return Chain{c}
+}
+```
+
+`NewChain`主要是生成一个`Chain`结构的变量，并将传入的封装器存入`Chain`变量中，在调用Then时会通过传入的封装器进行封装，具体过程如下：
+
+```go
+func (c Chain) Then(j Job) Job {
+	for i := range c.wrappers {
+		j = c.wrappers[len(c.wrappers)-i-1](j) // 从封装器最后一个开始封装
+	}
+	return j
+}
+```
+
+`NewChain(m1,m2,m3).Then(job)` 封装完之后为`m1(m2(m3(job)))`
+
 
 
 第二个，`logger`字段，通过调用`DefaultLogger`来赋值。
+
+```go
+var DefaultLogger Logger = PrintfLogger(log.New(os.Stdout, "cron: ", log.LstdFlags))
+
+type Logger interface {
+	// Info logs routine messages about cron's operation.
+	Info(msg string, keysAndValues ...interface{})
+	// Error logs an error condition.
+	Error(err error, msg string, keysAndValues ...interface{})
+}
+
+
+func PrintfLogger(l interface{ Printf(string, ...interface{}) }) Logger {
+	return printfLogger{l, false}
+}
+
+type printfLogger struct {
+	logger  interface{ Printf(string, ...interface{}) }
+	logInfo bool
+}
+
+func (pl printfLogger) Info(msg string, keysAndValues ...interface{}) {
+	if pl.logInfo {
+		keysAndValues = formatTimes(keysAndValues)
+		pl.logger.Printf(
+			formatString(len(keysAndValues)),
+			append([]interface{}{msg}, keysAndValues...)...)
+	}
+}
+
+func (pl printfLogger) Error(err error, msg string, keysAndValues ...interface{}) {
+	keysAndValues = formatTimes(keysAndValues)
+	pl.logger.Printf(
+		formatString(len(keysAndValues)+2),
+		append([]interface{}{msg, "error", err}, keysAndValues...)...)
+}
+
+```
+
+主要是返回一个`Logger`类型的接口，具体实现时`printfLogger`。
 
 
 
@@ -113,6 +174,8 @@ func NewParser(options ParseOption) Parser {
 `standardParser`是一个通过`NewParser()`生成的有固定时间格式的一个时间解析器。具体的格式为：支持分钟、小时、每月的第几天、月份、每周第几天五个字段且允许使用描述符。
 
 `NewParser`函数定义的时间格式有两个字段(SecondOptional和DowOptional)可以将对应字段设为可选字段，但每个解释器只允许有一个可选字段，所以当可选数量大于1时会引发panic。
+
+可以通过`WithParser`函数来设置自定义的时间解析器。
 
 
 
@@ -157,13 +220,17 @@ func (c *Cron) AddJob(spec string, cmd Job) (EntryID, error) {
 
 
 
+时间解析实现如下：
+
 ```go
 func (p Parser) Parse(spec string) (Schedule, error) {
 	if len(spec) == 0 {
 		return nil, fmt.Errorf("empty spec string")
 	}
 
-	// Extract timezone if present
+	// 检查时间字符串中是否包含时区，如果包含则解析到loc变量中存储，
+	// 解析的规则是："TZ="和"CRON_TZ="来标识，并且放在字符串的开始阶段，通过空格与后面时间进行分割。
+	// 比如："CRON_TZ=UTC 0 5 * * * *"
 	var loc = time.Local
 	if strings.HasPrefix(spec, "TZ=") || strings.HasPrefix(spec, "CRON_TZ=") {
 		var err error
@@ -175,19 +242,22 @@ func (p Parser) Parse(spec string) (Schedule, error) {
 		spec = strings.TrimSpace(spec[i:])
 	}
 
-	// Handle named schedules (descriptors), if configured
+    // 处理描述符，当时间解释器中配置了允许使用描述符时，则可以通过@标识描述符
 	if strings.HasPrefix(spec, "@") {
 		if p.options&Descriptor == 0 {
 			return nil, fmt.Errorf("parser does not accept descriptors: %v", spec)
 		}
+        // 具体的描述符解析（后面单独说明：详见内部接口）
 		return parseDescriptor(spec, loc)
 	}
 
-	// Split on whitespace.
+	// 时间格式字符串各个字段值之间是通过空格分割的，这里的spec是去除时区信息之后剩余的时间信息。
 	fields := strings.Fields(spec)
 
 	// Validate & fill in any omitted or optional fields
+    
 	var err error
+    // 根据给定的时间格式规范解析给定的字符串，最终解析成程序规范的格式，未定义的字段会以默认值代替（详见内部接口）
 	fields, err = normalizeFields(fields, p.options)
 	if err != nil {
 		return nil, err
@@ -198,10 +268,11 @@ func (p Parser) Parse(spec string) (Schedule, error) {
 			return 0
 		}
 		var bits uint64
+        // 根据字段值，生成字段位标识（详见内部接口）
 		bits, err = getField(field, r)
 		return bits
 	}
-
+	// 初始化每个字段的标识位，标识各个字段所匹配的值
 	var (
 		second     = field(fields[0], seconds)
 		minute     = field(fields[1], minutes)
@@ -313,4 +384,258 @@ func (p Parser) Parse(spec string) (Schedule, error) {
 **函数返回值：**
 
 **源代码：**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 内部接口
+
+### func parseDescriptor(descriptor string, loc *time.Location) (Schedule, error)
+
+
+
+```go
+// parseDescriptor returns a predefined schedule for the expression, or error if none matches.
+func parseDescriptor(descriptor string, loc *time.Location) (Schedule, error) {
+	switch descriptor {
+	case "@yearly", "@annually":
+		return &SpecSchedule{
+			Second:   1 << seconds.min,
+			Minute:   1 << minutes.min,
+			Hour:     1 << hours.min,
+			Dom:      1 << dom.min,
+			Month:    1 << months.min,
+			Dow:      all(dow),
+			Location: loc,
+		}, nil
+
+	case "@monthly":
+		return &SpecSchedule{
+			Second:   1 << seconds.min,
+			Minute:   1 << minutes.min,
+			Hour:     1 << hours.min,
+			Dom:      1 << dom.min,
+			Month:    all(months),
+			Dow:      all(dow),
+			Location: loc,
+		}, nil
+
+	case "@weekly":
+		return &SpecSchedule{
+			Second:   1 << seconds.min,
+			Minute:   1 << minutes.min,
+			Hour:     1 << hours.min,
+			Dom:      all(dom),
+			Month:    all(months),
+			Dow:      1 << dow.min,
+			Location: loc,
+		}, nil
+
+	case "@daily", "@midnight":
+		return &SpecSchedule{
+			Second:   1 << seconds.min,
+			Minute:   1 << minutes.min,
+			Hour:     1 << hours.min,
+			Dom:      all(dom),
+			Month:    all(months),
+			Dow:      all(dow),
+			Location: loc,
+		}, nil
+
+	case "@hourly":
+		return &SpecSchedule{
+			Second:   1 << seconds.min,
+			Minute:   1 << minutes.min,
+			Hour:     all(hours),
+			Dom:      all(dom),
+			Month:    all(months),
+			Dow:      all(dow),
+			Location: loc,
+		}, nil
+
+	}
+
+	const every = "@every "
+	if strings.HasPrefix(descriptor, every) {
+		duration, err := time.ParseDuration(descriptor[len(every):])
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse duration %s: %s", descriptor, err)
+		}
+		return Every(duration), nil
+	}
+
+	return nil, fmt.Errorf("unrecognized descriptor: %s", descriptor)
+}
+```
+
+
+
+
+
+```go
+func normalizeFields(fields []string, options ParseOption) ([]string, error) {
+	// Validate optionals & add their field to options
+	optionals := 0
+	if options&SecondOptional > 0 {
+		options |= Second
+		optionals++
+	}
+	if options&DowOptional > 0 {
+		options |= Dow
+		optionals++
+	}
+	if optionals > 1 {
+		return nil, fmt.Errorf("multiple optionals may not be configured")
+	}
+
+	// Figure out how many fields we need
+	max := 0
+	for _, place := range places {
+		if options&place > 0 {
+			max++
+		}
+	}
+	min := max - optionals
+
+	// Validate number of fields
+	if count := len(fields); count < min || count > max {
+		if min == max {
+			return nil, fmt.Errorf("expected exactly %d fields, found %d: %s", min, count, fields)
+		}
+		return nil, fmt.Errorf("expected %d to %d fields, found %d: %s", min, max, count, fields)
+	}
+
+	// Populate the optional field if not provided
+	if min < max && len(fields) == min {
+		switch {
+		case options&DowOptional > 0:
+			fields = append(fields, defaults[5]) // TODO: improve access to default
+		case options&SecondOptional > 0:
+			fields = append([]string{defaults[0]}, fields...)
+		default:
+			return nil, fmt.Errorf("unknown optional field")
+		}
+	}
+
+	// Populate all fields not part of options with their defaults
+	n := 0
+	expandedFields := make([]string, len(places))
+	copy(expandedFields, defaults)
+	for i, place := range places {
+		if options&place > 0 {
+			expandedFields[i] = fields[n]
+			n++
+		}
+	}
+	return expandedFields, nil
+}
+```
+
+
+
+
+
+```go
+// getField returns an Int with the bits set representing all of the times that
+// the field represents or error parsing field value.  A "field" is a comma-separated
+// list of "ranges".
+func getField(field string, r bounds) (uint64, error) {
+	var bits uint64
+	ranges := strings.FieldsFunc(field, func(r rune) bool { return r == ',' })
+	for _, expr := range ranges {
+		bit, err := getRange(expr, r)
+		if err != nil {
+			return bits, err
+		}
+		bits |= bit
+	}
+	return bits, nil
+}
+
+// getRange returns the bits indicated by the given expression:
+//   number | number "-" number [ "/" number ]
+// or error parsing range.
+func getRange(expr string, r bounds) (uint64, error) {
+	var (
+		start, end, step uint
+		rangeAndStep     = strings.Split(expr, "/")
+		lowAndHigh       = strings.Split(rangeAndStep[0], "-")
+		singleDigit      = len(lowAndHigh) == 1
+		err              error
+	)
+
+	var extra uint64
+	if lowAndHigh[0] == "*" || lowAndHigh[0] == "?" {
+		start = r.min
+		end = r.max
+		extra = starBit
+	} else {
+		start, err = parseIntOrName(lowAndHigh[0], r.names)
+		if err != nil {
+			return 0, err
+		}
+		switch len(lowAndHigh) {
+		case 1:
+			end = start
+		case 2:
+			end, err = parseIntOrName(lowAndHigh[1], r.names)
+			if err != nil {
+				return 0, err
+			}
+		default:
+			return 0, fmt.Errorf("too many hyphens: %s", expr)
+		}
+	}
+
+	switch len(rangeAndStep) {
+	case 1:
+		step = 1
+	case 2:
+		step, err = mustParseInt(rangeAndStep[1])
+		if err != nil {
+			return 0, err
+		}
+
+		// Special handling: "N/step" means "N-max/step".
+		if singleDigit {
+			end = r.max
+		}
+		if step > 1 {
+			extra = 0
+		}
+	default:
+		return 0, fmt.Errorf("too many slashes: %s", expr)
+	}
+
+	if start < r.min {
+		return 0, fmt.Errorf("beginning of range (%d) below minimum (%d): %s", start, r.min, expr)
+	}
+	if end > r.max {
+		return 0, fmt.Errorf("end of range (%d) above maximum (%d): %s", end, r.max, expr)
+	}
+	if start > end {
+		return 0, fmt.Errorf("beginning of range (%d) beyond end of range (%d): %s", start, end, expr)
+	}
+	if step == 0 {
+		return 0, fmt.Errorf("step of range should be a positive number: %s", expr)
+	}
+
+	return getBits(start, end, step) | extra, nil
+}
+```
+
+```go
+func getField(field string, r bounds) (uint64, error)
+```
 
