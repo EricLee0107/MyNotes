@@ -299,6 +299,30 @@ func (p Parser) Parse(spec string) (Schedule, error) {
 
 
 
+```go
+func (c *Cron) Schedule(schedule Schedule, cmd Job) EntryID {
+	c.runningMu.Lock()
+	defer c.runningMu.Unlock()
+	c.nextID++
+	entry := &Entry{
+		ID:         c.nextID,
+		Schedule:   schedule,
+		WrappedJob: c.chain.Then(cmd),
+		Job:        cmd,
+	}
+	if !c.running {
+		c.entries = append(c.entries, entry)
+	} else {
+		c.add <- entry
+	}
+	return entry.ID
+}
+```
+
+
+
+
+
 ### func (c *Cron) AddFunc(spec string, cmd func())
 
 **函数功能：** 对Add
@@ -406,7 +430,7 @@ func (p Parser) Parse(spec string) (Schedule, error) {
 
 
 ```go
-// parseDescriptor returns a predefined schedule for the expression, or error if none matches.
+// 解析所有的描述符，比如@monthly 代表每月的第一秒， 等价于 1 1 1 1 * *  
 func parseDescriptor(descriptor string, loc *time.Location) (Schedule, error) {
 	switch descriptor {
 	case "@yearly", "@annually":
@@ -481,11 +505,12 @@ func parseDescriptor(descriptor string, loc *time.Location) (Schedule, error) {
 
 
 
-
+### func normalizeFields(fields []string, options ParseOption) ([]string, error)
 
 ```go
+
 func normalizeFields(fields []string, options ParseOption) ([]string, error) {
-	// Validate optionals & add their field to options
+    // 检查是否有可选字段，如果有则给时间范式中增加对应字段
 	optionals := 0
 	if options&SecondOptional > 0 {
 		options |= Second
@@ -495,20 +520,23 @@ func normalizeFields(fields []string, options ParseOption) ([]string, error) {
 		options |= Dow
 		optionals++
 	}
+    // 一个时间范式中只允许有一个可选子弹
 	if optionals > 1 {
 		return nil, fmt.Errorf("multiple optionals may not be configured")
 	}
 
-	// Figure out how many fields we need
+    // 获取范式允许的字段个数范围
 	max := 0
+    // 最大值为optionas中标识的固定字段（包括可选字段，但不包含描述符字段）
 	for _, place := range places {
 		if options&place > 0 {
 			max++
 		}
 	}
+    // 最小值为最大值减去可选字段个数
 	min := max - optionals
 
-	// Validate number of fields
+	// 检查给定时间字符串是否满足字段数要求
 	if count := len(fields); count < min || count > max {
 		if min == max {
 			return nil, fmt.Errorf("expected exactly %d fields, found %d: %s", min, count, fields)
@@ -516,7 +544,7 @@ func normalizeFields(fields []string, options ParseOption) ([]string, error) {
 		return nil, fmt.Errorf("expected %d to %d fields, found %d: %s", min, max, count, fields)
 	}
 
-	// Populate the optional field if not provided
+	// 对于有可选字段但未传入的则设置为默认值
 	if min < max && len(fields) == min {
 		switch {
 		case options&DowOptional > 0:
@@ -528,7 +556,7 @@ func normalizeFields(fields []string, options ParseOption) ([]string, error) {
 		}
 	}
 
-	// Populate all fields not part of options with their defaults
+	// 将给的字符串补充成通用格式（不需要的字段补充默认值）
 	n := 0
 	expandedFields := make([]string, len(places))
 	copy(expandedFields, defaults)
@@ -546,13 +574,14 @@ func normalizeFields(fields []string, options ParseOption) ([]string, error) {
 
 
 
+### func getField(field string, r bounds) (uint64, error)
+
 ```go
-// getField returns an Int with the bits set representing all of the times that
-// the field represents or error parsing field value.  A "field" is a comma-separated
-// list of "ranges".
 func getField(field string, r bounds) (uint64, error) {
 	var bits uint64
+	// 同一个字段中的多个值之间是通过逗号分割的，所以根据逗号分割之后可以获得字段的多个值（可能是范围可能是单个值）
 	ranges := strings.FieldsFunc(field, func(r rune) bool { return r == ',' })
+	// 遍历字段的所有值，生成对应的位运算值。
 	for _, expr := range ranges {
 		bit, err := getRange(expr, r)
 		if err != nil {
@@ -562,19 +591,27 @@ func getField(field string, r bounds) (uint64, error) {
 	}
 	return bits, nil
 }
+```
 
-// getRange returns the bits indicated by the given expression:
-//   number | number "-" number [ "/" number ]
-// or error parsing range.
+
+
+### func getRange(expr string, r bounds) (uint64, error)
+
+```go
+// 返回expr代表的位（expr可以是一个值或者用'-'来表示的一个范围，或者是一个用'/'表示的每隔多久）
 func getRange(expr string, r bounds) (uint64, error) {
 	var (
+		// 用于存储起始和结束点，以及每次跨越间隔step
 		start, end, step uint
+		// 分割字符，比如秒字段： 1-30/3  代表1-30秒中每3s一次，rangeAndStep[0] = "1-30" rangeAndStep[1] = "3"
 		rangeAndStep     = strings.Split(expr, "/")
+		// 分割范围获取范围最大最小值，lowAndHigh[0] = "1" lowAndHigh[1] = "30"
 		lowAndHigh       = strings.Split(rangeAndStep[0], "-")
 		singleDigit      = len(lowAndHigh) == 1
 		err              error
 	)
 
+	// 如果字段是*或者? 则代表允许范围内任何值
 	var extra uint64
 	if lowAndHigh[0] == "*" || lowAndHigh[0] == "?" {
 		start = r.min
@@ -585,19 +622,23 @@ func getRange(expr string, r bounds) (uint64, error) {
 		if err != nil {
 			return 0, err
 		}
+		// 如果只有一个值，则代表起始和结束值相同
 		switch len(lowAndHigh) {
 		case 1:
 			end = start
 		case 2:
+			// 两个值代表起始不同，单独解析结束值
 			end, err = parseIntOrName(lowAndHigh[1], r.names)
 			if err != nil {
 				return 0, err
 			}
 		default:
+			// 其他长度则属于错误
 			return 0, fmt.Errorf("too many hyphens: %s", expr)
 		}
 	}
 
+	// 解析每个间隔步长，如果1个参数，则代表未设置步长，默认为1。
 	switch len(rangeAndStep) {
 	case 1:
 		step = 1
@@ -607,10 +648,11 @@ func getRange(expr string, r bounds) (uint64, error) {
 			return 0, err
 		}
 
-		// Special handling: "N/step" means "N-max/step".
+		// 如果存在'/'则代表前面需要是一个范围，如果给定N/Setp,实际代表的时"N-Max/step",所以这里会对只给定了一个值的范围值补充结束值为字段最大值
 		if singleDigit {
 			end = r.max
 		}
+		// 对于步数为1的范围，后续处理extra有特殊操作,非步数为1的无意义，可以设置为0
 		if step > 1 {
 			extra = 0
 		}
@@ -631,11 +673,29 @@ func getRange(expr string, r bounds) (uint64, error) {
 		return 0, fmt.Errorf("step of range should be a positive number: %s", expr)
 	}
 
+	// 这里的extra用于当step为1时返回的可能为一个超过64位的值，此时需要extra来截断使其最多64位
 	return getBits(start, end, step) | extra, nil
 }
 ```
 
+### func getBits(min, max, step uint) uint64
+
 ```go
-func getField(field string, r bounds) (uint64, error)
+// 以给定步长，在[min,max]取step的倍数，将所有满足条件的值，设置到位标识符上。
+// 这里要特别注意一点就是，这个只回取step的倍数，比如对于秒字段 ： */7 代表每7秒执行一次，但实际是所有7的倍数秒执行，在一分钟的第56秒会执行一次（56为7的倍数），在下一分钟的第0秒又会执行一次，两次间隔只有四秒。并不是每七秒一次。
+func getBits(min, max, step uint) uint64 {
+	var bits uint64
+
+	// 对于1秒步长用了通过移位运算实现
+	if step == 1 {
+		return ^(math.MaxUint64 << (max + 1)) & (math.MaxUint64 << min)
+	}
+
+	// Else, use a simple loop.
+	for i := min; i <= max; i += step {
+		bits |= 1 << i
+	}
+	return bits
+}
 ```
 
