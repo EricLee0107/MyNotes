@@ -1,4 +1,16 @@
-# go mod
+# Go mod
+
+## Go mod 的三种开启模式
+
+- GO111MODULE
+  - on：支持Go mod模式
+  - off：不支持Go mod模式
+  - auto (默认模式)：如果代码在gopath下，则自动使用gopath模式；如果代码不在gopath下，则自动使用GO mod模式。
+- 开启方式：
+  - Windows中，在环境变量中添加变量即可，变量名为 GO111MODULE ，变量值可设置为 on、off、auto。
+  - Linux中，只要在 /etc/profile 中添加 export GO111MODULE=on 或 export GO111MODULE=off 或 export GO111MODULE=auto。然后执行 source /etc/profile 刷新即可。
+
+
 
 ## 范式
 
@@ -23,11 +35,71 @@ go命令将在常规执行（编译、调试等等）期间根据需要自动下
 
 ### edit
 
+**范式：**`go mod edit [editing flags] [go.mod]`
+
+**作用：**edit提供一个编辑go.mod的命令行接口，主要提供给工具或脚本使用。它只读取go.mod；不查找涉及模块的信息。默认情况下，edit读写主模块的go.mod文件，但也可以在标志后指定不同的目标文件。
+
+**标志：**
+
+- `-dropexclude=path@version`：删除给定模块路径和版本的排除项。
+
+- `-dropreplace=old[@v]`：删除给定模块路径和版本的替代。如果@v省略，删除该模块不带版本的替代。
+
+- `-droprequire=path`：删除给定的模块路径依赖要求的模块。该标志主要提供给工具用以理解模块图。用户应该使用“go get path@none”，可令其它go.mod根据需要调整来满足其它模块施加的限制。
+
+- `-exclude=path@version`：添加给定模块路径和版本的排除项。注意如果排除项已经存在-exclude=path@version是无操作的。
+
+- `-fmt`：重新格式化go.mod文件，不作其他改变。使用或重写go.mod文件的任何其他修改也意味着这种重新格式化。需要该标志的唯一情形是没有指定其它标志，如“go mod edit -fmt”。
+
+- `-go=version`：设置期望的Go语言版本。
+
+- `-json`：以JSON格式打印最终的go.mod，而不是将其写回go.mod。JSON输出对应于这些Go类型：
+
+  ```go
+  type Module struct {
+  	Path string
+  	Version string
+  }
+  
+  type GoMod struct {
+  	Module  Module
+  	Go      string
+  	Require []Require
+  	Exclude []Module
+  	Replace []Replace
+  }
+  
+  type Require struct {
+  	Path string
+  	Version string
+  	Indirect bool
+  }
+  
+  type Replace struct {
+  	Old Module
+  	New Module
+  }
+  ```
+
+- `-module`：修改模块路径（go.mod文件的模块行）。
+
+- `-print`：以其文本格式打印最终的go.mod，而不是将其写回go.mod。
+
+- `-replace=old[@v]=new[@v]`：添加给定模块路径和版本对的替代。如果old@v中的@v省略，则左侧不带版本的替代将被添加，应用于old模块路径的所有版本。如果new@v中的@v省略，新路径应为本地模块根目录，而不是模块路径。注意-replace覆盖old[@v]任何冗余的替代，因此省略@v将删除对特定版本的现有替代。
+
+- `-require=path@version`：添加给定的模块路径和版本依赖要求的模块。注意-require覆盖该路径任何已存在的依赖要求的模块。该标志主要提供给工具用以理解模块图。用户应该使用“go get path@version”，其可令其它go.mod根据需要调整来满足其它模块施加的限制。
+
+`-require`、`-droprequire`、`-exclude`、`-dropexclude`、`-replace`、`-dropreplace`标志可以重复，根据给定的顺序应用修改。
+
+注意这只描述go.mod文件自身，不描述其他间接引用的模块。对于构建可使用的的模块的完整集合，使用“go list -m -json all”。
+
+例如，工具可以通过解析“go mod edit -json”的输出以数据结构体的方式获取go.mod，然后可通过使用`-require`、`-exclude`等调用“go mod edit”来作出修改，等等。
+
 ### graph
 
 **范式：**`go mod graph`
 
-**作用：**以文本形式打印模块间的依赖关系图。输出的每一行行有两个字段（通过空格分割）：模块和其所有依赖中的一个。每个模块都被标记为path@version形式的字符串（除了主模块，因其没有@version后缀）。
+**作用：**以文本形式打印模块间的依赖关系图。输出的每一行行有两个字段（通过空格分割）；模块和其所有依赖中的一个。每个模块都被标记为path@version形式的字符串（除了主模块，因其没有@version后缀）。
 
 ### init
 
