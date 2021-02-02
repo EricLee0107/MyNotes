@@ -71,6 +71,3 @@ vet version go1.14.2
 | -unusedresult       | 使用 unusedresult分析器                                      |
 
 
-
-### 标记详解与举例
-
